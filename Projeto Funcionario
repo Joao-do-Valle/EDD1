@@ -1,0 +1,128 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 100
+#define TAM_NOME 100
+
+typedef struct {
+    int prontuario;
+    char nome[TAM_NOME];
+    double salario;
+} Funcionario;
+
+Funcionario lista[MAX];
+int qtd = 0;
+
+
+int buscarProntuario(int prontuario) {
+    for (int i = 0; i < qtd; i++) {
+        if (lista[i].prontuario == prontuario)
+            return i;
+    }
+    return -1;
+}
+
+void incluir() {
+    if (qtd >= MAX) {
+        printf("Lista cheia. Não é possível incluir mais funcionários.\n");
+        return;
+    }
+
+    int prontuario;
+    printf("Digite o prontuário: ");
+    scanf("%d", &prontuario);
+    
+    if (buscarProntuario(prontuario) != -1) {
+        printf("Prontuário já cadastrado!\n");
+        return;
+    }
+
+    Funcionario f;
+    f.prontuario = prontuario;
+
+    printf("Digite o nome: ");
+    getchar(); // limpar o \n do buffer
+    fgets(f.nome, TAM_NOME, stdin);
+    f.nome[strcspn(f.nome, "\n")] = '\0'; // remove \n
+
+    printf("Digite o salário: ");
+    scanf("%lf", &f.salario);
+
+    lista[qtd++] = f;
+    printf("Funcionário incluído com sucesso.\n");
+}
+
+void excluir() {
+    int prontuario;
+    printf("Digite o prontuário do funcionário a excluir: ");
+    scanf("%d", &prontuario);
+
+    int pos = buscarProntuario(prontuario);
+    if (pos == -1) {
+        printf("Funcionário não encontrado.\n");
+        return;
+    }
+
+    for (int i = pos; i < qtd - 1; i++) {
+        lista[i] = lista[i + 1];
+    }
+
+    qtd--;
+    printf("Funcionário excluído com sucesso.\n");
+}
+
+void pesquisar() {
+    int prontuario;
+    printf("Digite o prontuário do funcionário a pesquisar: ");
+    scanf("%d", &prontuario);
+
+    int pos = buscarProntuario(prontuario);
+    if (pos == -1) {
+        printf("Funcionário não encontrado.\n");
+        return;
+    }
+
+    Funcionario f = lista[pos];
+    printf("Prontuário: %d\nNome: %s\nSalário: %.2lf\n", f.prontuario, f.nome, f.salario);
+}
+
+void listar() {
+    if (qtd == 0) {
+        printf("Nenhum funcionário cadastrado.\n");
+        return;
+    }
+
+    double totalSalarios = 0;
+    printf("Lista de Funcionários:\n");
+
+    for (int i = 0; i < qtd; i++) {
+        printf("%d - %s - R$ %.2lf\n", lista[i].prontuario, lista[i].nome, lista[i].salario);
+        totalSalarios += lista[i].salario;
+    }
+
+    printf("Total de salários: R$ %.2lf\n", totalSalarios);
+}
+
+int main() {
+    int opcao;
+
+    do {
+        printf("\nMenu:\n");
+        printf("0 - Sair\n1 - Incluir\n2 - Excluir\n3 - Pesquisar\n4 - Listar\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1: incluir(); break;
+            case 2: excluir(); break;
+            case 3: pesquisar(); break;
+            case 4: listar(); break;
+            case 0: printf("Encerrando...\n"); break;
+            default: printf("Opção inválida!\n");
+        }
+
+    } while (opcao != 0);
+
+    return 0;
+}
