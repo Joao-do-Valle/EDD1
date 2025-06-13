@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define TAM 30
+
+typedef struct No {
+    int valor;
+    struct No* prox;
+} No;
+
+typedef struct {
+    No* topo;
+} PilhaLista;
+
+void initPilhaLista(PilhaLista* p) {
+    p->topo = NULL;
+}
+
+void pushLista(PilhaLista* p, int v) {
+    No* novo = (No*)malloc(sizeof(No));
+    novo->valor = v;
+    novo->prox = p->topo;
+    p->topo = novo;
+}
+
+int popLista(PilhaLista* p) {
+    if (p->topo == NULL) return -1;
+    No* temp = p->topo;
+    int v = temp->valor;
+    p->topo = temp->prox;
+    free(temp);
+    return v;
+}
+
+typedef struct {
+    int dados[TAM];
+    int topo;
+} PilhaVetor;
+
+void initPilhaVetor(PilhaVetor* p) {
+    p->topo = -1;
+}
+
+void pushVetor(PilhaVetor* p, int v) {
+    if (p->topo < TAM - 1) {
+        p->dados[++p->topo] = v;
+    }
+}
+
+int popVetor(PilhaVetor* p) {
+    if (p->topo >= 0) {
+        return p->dados[p->topo--];
+    }
+    return -1;
+}
+
+int main() {
+    int numeros[TAM];
+    int num, i;
+
+    PilhaLista pilhaParLista, pilhaImparLista;
+    PilhaVetor pilhaParVetor, pilhaImparVetor;
+
+    initPilhaLista(&pilhaParLista);
+    initPilhaLista(&pilhaImparLista);
+    initPilhaVetor(&pilhaParVetor);
+    initPilhaVetor(&pilhaImparVetor);
+
+    for (i = 0; i < TAM; i++) {
+        do {
+            printf("Digite o %dº número: ", i + 1);
+            scanf("%d", &num);
+        } while (i > 0 && num <= numeros[i - 1]);
+        numeros[i] = num;
+        if (num % 2 == 0) {
+            pushLista(&pilhaParLista, num);
+            pushVetor(&pilhaParVetor, num);
+        } else {
+            pushLista(&pilhaImparLista, num);
+            pushVetor(&pilhaImparVetor, num);
+        }
+    }
+
+    printf("\nDesempilhando (Lista Encadeada):\n");
+    printf("Pares: ");
+    while (pilhaParLista.topo != NULL) {
+        printf("%d ", popLista(&pilhaParLista));
+    }
+    printf("\nÍmpares: ");
+    while (pilhaImparLista.topo != NULL) {
+        printf("%d ", popLista(&pilhaImparLista));
+    }
+
+    printf("\n\nDesempilhando (Vetor):\n");
+    printf("Pares: ");
+    while (pilhaParVetor.topo != -1) {
+        printf("%d ", popVetor(&pilhaParVetor));
+    }
+    printf("\nÍmpares: ");
+    while (pilhaImparVetor.topo != -1) {
+        printf("%d ", popVetor(&pilhaImparVetor));
+    }
+
+    return 0;
+}
