@@ -1,0 +1,164 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct NoFila {
+    int valor;
+    struct NoFila* prox;
+} NoFila;
+
+typedef struct {
+    NoFila* inicio;
+    NoFila* fim;
+} Fila;
+
+typedef struct Guiche {
+    int id;
+    Fila senhasAtendidas;
+    struct Guiche* prox;
+} Guiche;
+
+void initFila(Fila* f) {
+    f->inicio = NULL;
+    f->fim = NULL;
+}
+
+void enfileira(Fila* f, int v) {
+    NoFila* novo = (NoFila*)malloc(sizeof(NoFila));
+    novo->valor = v;
+    novo->prox = NULL;
+    if (f->fim == NULL) {
+        f->inicio = novo;
+        f->fim = novo;
+    } else {
+        f->fim->prox = novo;
+        f->fim = novo;
+    }
+}
+
+int desenfileira(Fila* f) {
+    if (f->inicio == NULL) return -1;
+    NoFila* temp = f->inicio;
+    int v = temp->valor;
+    f->inicio = temp->prox;
+    if (f->inicio == NULL) f->fim = NULL;
+    free(temp);
+    return v;
+}
+
+int filaVazia(Fila* f) {
+    return f->inicio == NULL;
+}
+
+int tamanhoFila(Fila* f) {
+    int count = 0;
+    NoFila* atual = f->inicio;
+    while (atual != NULL) {
+        count++;
+        atual = atual->prox;
+    }
+    return count;
+}
+
+Guiche* criaGuiche(Guiche** lista, int id) {
+    Guiche* novo = (Guiche*)malloc(sizeof(Guiche));
+    novo->id = id;
+    initFila(&novo->senhasAtendidas);
+    novo->prox = *lista;
+    *lista = novo;
+    return novo;
+}
+
+Guiche* buscaGuiche(Guiche* lista, int id) {
+    while (lista != NULL) {
+        if (lista->id == id) return lista;
+        lista = lista->prox;
+    }
+    return NULL;
+}
+
+void listarSenhasAtendidas(Fila* f) {
+    NoFila* atual = f->inicio;
+    if (atual == NULL) {
+        printf("Nenhuma senha atendida por este guichê.\n");
+        return;
+    }
+    while (atual != NULL) {
+        printf("%d ", atual->valor);
+        atual = atual->prox;
+    }
+    printf("\n");
+}
+
+int main() {
+    Fila senhasGeradas;
+    Guiche* listaGuiches = NULL;
+    int opcao, senha = 0, totalAtendidas = 0;
+
+    initFila(&senhasGeradas);
+
+    do {
+        printf("\n[Senhas aguardando: %d | Guichês abertos: ", tamanhoFila(&senhasGeradas));
+        int guichesAbertos = 0;
+        Guiche* g = listaGuiches;
+        while (g != NULL) {
+            guichesAbertos++;
+            g = g->prox;
+        }
+        printf("%d]\n", guichesAbertos);
+        printf("0. Sair\n1. Gerar senha\n2. Abrir guichê\n3. Realizar atendimento\n4. Listar senhas atendidas\nEscolha: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 1) {
+            senha++;
+            enfileira(&senhasGeradas, senha);
+            printf("Senha %d gerada.\n", senha);
+        } else if (opcao == 2) {
+            int id;
+            printf("Digite o ID do novo guichê: ");
+            scanf("%d", &id);
+            if (buscaGuiche(listaGuiches, id)) {
+                printf("Guichê já existe.\n");
+            } else {
+                criaGuiche(&listaGuiches, id);
+                printf("Guichê %d aberto.\n", id);
+            }
+        } else if (opcao == 3) {
+            int id;
+            printf("Digite o ID do guichê: ");
+            scanf("%d", &id);
+            Guiche* g = buscaGuiche(listaGuiches, id);
+            if (g == NULL) {
+                printf("Guichê não encontrado.\n");
+            } else if (filaVazia(&senhasGeradas)) {
+                printf("Nenhuma senha aguardando.\n");
+            } else {
+                int s = desenfileira(&senhasGeradas);
+                enfileira(&g->senhasAtendidas, s);
+                totalAtendidas++;
+                printf("Guichê %d atendeu senha %d.\n", id, s);
+            }
+        } else if (opcao == 4) {
+            int id;
+            printf("Digite o ID do guichê: ");
+            scanf("%d", &id);
+            Guiche* g = buscaGuiche(listaGuiches, id);
+            if (g == NULL) {
+                printf("Guichê não encontrado.\n");
+            } else {
+                printf("Senhas atendidas pelo guichê %d: ", id);
+                listarSenhasAtendidas(&g->senhasAtendidas);
+            }
+        } else if (opcao == 0) {
+            if (!filaVazia(&senhasGeradas)) {
+                printf("Ainda há senhas aguardando atendimento. Não é possível encerrar.\n");
+                opcao = -1;
+            }
+        } else {
+            printf("Opção inválida.\n");
+        }
+
+    } while (opcao != 0);
+
+    printf("\nPrograma encerrado. Total de senhas atendidas: %d\n", totalAtendidas);
+    return 0;
+}
